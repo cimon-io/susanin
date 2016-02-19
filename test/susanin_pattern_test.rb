@@ -37,29 +37,19 @@ class SusaninPatternTest < Minitest::Test
 
   def test_assertion_5
     pattern = ::Susanin::Pattern.new([:a, :b, :c, :d])
-    assert pattern.count == 24
-    assert pattern == [
+    assert pattern.count == 10
+    assert pattern.to_a == [
       [:a,:b,:c,:d],
       [:a,:b,:c],
       [:b,:c,:d],
       [:a,:b],
       [:b,:c],
-      [:c,:d]
+      [:c,:d],
       :a,
       :b,
       :c,
       :d
     ]
-    assert pattern.include?(:a)
-    assert pattern.include?(:b)
-    assert pattern.include?(:c)
-    assert pattern.include?(:d)
-    assert pattern.include?([:a,:b])
-    assert pattern.include?([:b,:c])
-    assert pattern.include?([:c,:d])
-    assert pattern.include?([:a,:b,:c])
-    assert pattern.include?([:b,:c,:d])
-    assert pattern.include?([:a,:b,:c,:d])
   end
 
   def test_shift_1
@@ -85,6 +75,12 @@ class SusaninPatternTest < Minitest::Test
     assert shifts.include?([0, 1])
     assert shifts.include?([1, 1])
     assert shifts.include?([2, 1])
+  end
+
+  def test_inspect
+    subject = ->(*args) { ::Susanin::Pattern.new(*args).inspect }
+    assert_equal subject[[1,2,3]], [[1, 2, 3], [1, 2], [2, 3], 1, 2, 3]
+    assert_equal subject[[:a,:b]], [[:a, :b], :a, :b]
   end
 
 end

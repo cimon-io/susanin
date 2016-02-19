@@ -22,10 +22,14 @@ module Susanin
 
     def shifts
       arr_size.downto(1).flat_map do |shift|
-        (arr_size-shift).downto(0).map do |i|
+        (0).upto(arr_size-shift).map do |i|
           [0+i, shift]
         end
       end
+    end
+
+    def inspect
+      map{|i|i}
     end
 
   end
