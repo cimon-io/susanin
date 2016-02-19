@@ -27,13 +27,13 @@ default: &default
     - COVERAGE=true
 
 test21:
-  <<: *server
+  <<: *default
   service: ruby21
 
 test22:
-  <<: *server
+  <<: *default
   service: ruby22
 
 test23:
-  <<: *server
+  <<: *default
   service: ruby23
