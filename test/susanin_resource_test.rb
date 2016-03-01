@@ -63,7 +63,6 @@ class SusaninResourceTest < Minitest::Test
       assert_equal arr.second.map(&:first), [:a_prefix, :another_prefix,[@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]]
       assert_equal arr.first, [:a_prefix, @a, @b, @c, @d]
     end
-
   end
 
   def test_merged_options
@@ -154,11 +153,30 @@ class SusaninResourceTest < Minitest::Test
   end
 
   def test_replace_subrecord
-    raise "Not implemented yet"
+    subject = ->(*args, r) { resource.replace_subrecord(*args, ->(*args){ r }) }
+
+    assert_equal subject.call([:a, :b, :c, :a, :b, :b], [:a, :b], '_1_'), ['_1_', :c, '_1_', :b]
+    assert_equal subject.call([:a, :b, :c, :a, :b, :b], [:a], '_1_'), ['_1_', :b, :c, '_1_', :b, :b]
+    assert_equal subject.call([:a, :b, @a, :a, @b, :b], [@a_klass], '_1_'), [:a, :b, '_1_', :a, @b, :b]
+    assert_equal subject.call([:a, :b, @a, :a, @b, :b], [@b_klass, :b], '_1_'), [:a, :b, @a, :a, '_1_']
   end
 
   def test_pattern_match
-    raise "Not implemented yet"
+    subject = ::Susanin::Resource.new()
+
+    assert subject.pattern_match?([@a, @b], [@a_klass, @b_klass])
+    assert subject.pattern_match?([@a, :c], [@a_klass, :c])
+    assert subject.pattern_match?(@a, @a_klass)
+    assert subject.pattern_match?(:c, :c)
+    assert subject.pattern_match?([:c], :c)
+    assert subject.pattern_match?(:c, [:c])
+    dissuade subject.pattern_match?([@a, @b_klass], [@a, @b_klass])
+    dissuade subject.pattern_match?(@a, @a)
+    dissuade subject.pattern_match?([@a, :c], [@a, :c])
+    dissuade subject.pattern_match?([@a, @b], [@a, @b_klass])
+    dissuade subject.pattern_match?([@a, @b], [@a, @b])
+    dissuade subject.pattern_match?([@a_klass, @b_klass], [@a, @b])
+    dissuade subject.pattern_match?([@a_klass, @b_klass], [@a, @b])
   end
 
 end

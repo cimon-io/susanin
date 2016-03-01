@@ -172,12 +172,17 @@ module Susanin
     def replace_subrecord(record, pattern, resource)
       record = record.dup
       pattern = Array.wrap(pattern)
+
       (pattern.length).upto(record.length) do |i|
-        record[[(0+(i-pattern.length))..i]] = resource[record[[(0+(i-pattern.length))..i]]] if pattern_match?(record[(0+(i-pattern.length))..i], pattern)
+        record[(0+(i-pattern.length))..(i-1)] = resource[record[(0+(i-pattern.length))..(i-1)]] if pattern_match?(record[(0+(i-pattern.length))..(i-1)], pattern)
       end
       record
     end
 
+    #
+    # pattern_match?([a, b], [A, B]) => true
+    # pattern_match?([a, b], [a, b]) => false
+    #
     def pattern_match?(record, pattern)
       Array.wrap(get_key(record)) == Array.wrap(pattern)
     end
