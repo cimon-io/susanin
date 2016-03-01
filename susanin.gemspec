@@ -7,10 +7,10 @@ Gem::Specification.new do |spec|
   spec.name          = "susanin"
   spec.version       = Susanin::VERSION
   spec.authors       = ["Alexey Osipenko"]
-  spec.email         = ["alexey@osipenko.in.ua"]
+  spec.email         = ["alexey@cimon.io"]
   spec.summary       = %q{polymorphic_url extention to help with route generation}
   spec.description   = %q{This gem simplify the route generation which generates via `polymorphic_url` method }
-  spec.homepage      = "https://github.com/aratak/susanin"
+  spec.homepage      = "https://github.com/cimon-io/susanin"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
