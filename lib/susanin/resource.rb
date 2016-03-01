@@ -58,9 +58,9 @@ module Susanin
     def replace_with(record, resources)
       record = record.dup
       resources = resources.dup
-      pattern = find_first_pattern(record, resources)
+      pattern, converter = find_first_pattern(record, resources)
 
-      [record, resources]
+      [replace_subrecord(record, pattern, resources), resources_except(resources, pattern)]
     end
 
     #
@@ -80,7 +80,7 @@ module Susanin
 
       resources.select do |r|
         record_patterns.include?(r[0])
-      end.first
+      end.first || []
     end
 
     #
@@ -160,25 +160,28 @@ module Susanin
       Pattern.new(arr)
     end
 
-    # #
-    # # replace_subrecord(
-    # #   [:a, :b, :c, :a, :b, :b],
-    # #   [:a, :b],
-    # #   ->(){ '_1_' }
-    # # )
-    # #
-    # # ['_1_', :c, '_1_', :b]
-    # #
-    # def replace_subrecord(record, pattern, resource)
-    #   (pattern.length).upto(record.length) do |i|
-    #     record[[(0+(i-pattern.length))..i]] = resource[record[[(0+(i-pattern.length))..i]]] if pattern_match?(record[(0+(i-pattern.length))..i], pattern)
-    #   end
-    # end
     #
-    # def pattern_match?(record, pattern)
-    #   Array.wrap(get_key(record)) == Array.wrap(pattern)
-    # end
+    # replace_subrecord(
+    #   [:a, :b, :c, :a, :b, :b],
+    #   [:a, :b],
+    #   ->(){ '_1_' }
+    # )
     #
+    # ['_1_', :c, '_1_', :b]
+    #
+    def replace_subrecord(record, pattern, resource)
+      record = record.dup
+      pattern = Array.wrap(pattern)
+      (pattern.length).upto(record.length) do |i|
+        record[[(0+(i-pattern.length))..i]] = resource[record[[(0+(i-pattern.length))..i]]] if pattern_match?(record[(0+(i-pattern.length))..i], pattern)
+      end
+      record
+    end
+
+    def pattern_match?(record, pattern)
+      Array.wrap(get_key(record)) == Array.wrap(pattern)
+    end
+
   end
 
 end

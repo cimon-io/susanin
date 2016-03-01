@@ -49,7 +49,21 @@ class SusaninResourceTest < Minitest::Test
   end
 
   def test_replace_with
-    raise "Not implemented yet"
+    subject = ::Susanin::Resource.new
+    resources = [
+      [:a_prefix,                            ->(r) { [:global_prefix, r] }],
+      [:another_prefix,                      ->(r) { [:global_prefix, r] }],
+      [@a_klass,                             ->(r) { [:a_prefix, r] }],
+      [[@a_klass],                           ->(r) { [:a_prefix, r] }],
+      [[@a_klass, @b_klass],                 ->(r) { [:another_prefix, *r] }],
+      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }]
+    ]
+
+    subject.replace_with([@a, @b, @c, @d], resources).tap do |arr|
+      assert_equal arr.second.map(&:first), [:a_prefix, :another_prefix,[@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]]
+      assert_equal arr.first, [:a_prefix, @a, @b, @c, @d]
+    end
+
   end
 
   def test_merged_options
@@ -83,7 +97,7 @@ class SusaninResourceTest < Minitest::Test
       [[@a_klass],                            ->(r) { :newer_happen }], # because array with single element is unwrapped to element
       [[@a_klass, @b_klass],                  ->(r) { :tyu }],
       [[@a_klass, @b_klass, @c_klass],        ->(r) { :tyu }],
-     [[@a_klass, :middle_prefix, @c_klass],  ->(r) { :yui }]
+      [[@a_klass, :middle_prefix, @c_klass],  ->(r) { :yui }]
     ]
 
     assert_equal(
@@ -124,8 +138,8 @@ class SusaninResourceTest < Minitest::Test
     assert_equal subject[[@c, @a, @b, :qwe, @c]].first,   [@a_klass, @b_klass]
     assert_equal subject[[@c, :a_prefix]].first,          :a_prefix
     assert_equal subject[[:new, @a, @b_klass, @c]].first, [@a_klass, @b_klass, @c_klass]
-    assert_equal subject[[:new, :non_exist]],             nil
-    assert_equal subject[[@b, @c]],                       nil
+    assert_equal subject[[:new, :non_exist]].first,       nil
+    assert_equal subject[[@b, @c]].first,                 nil
     assert_equal subject[@a].first,                       @a_klass
   end
 
@@ -137,6 +151,14 @@ class SusaninResourceTest < Minitest::Test
     # assert subject.get([@a, @b], @resources2).flatten == [:global_prefix, :another_prefix, @a, @b]
     # assert subject.get([:a_prefix, :another_prefix, @c], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :another_prefix, @c]
     # assert subject.get([:a_prefix, @a], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :a_prefix, @a]
+  end
+
+  def test_replace_subrecord
+    raise "Not implemented yet"
+  end
+
+  def test_pattern_match
+    raise "Not implemented yet"
   end
 
 end
