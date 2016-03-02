@@ -6,10 +6,12 @@ class SusaninResourceTest < Minitest::Test
     @a_klass = Class.new { def inspect; "a_klass##{self.object_id}"; end; def self.inspect; "a_klass"; end; }
     @b_klass = Class.new { def inspect; "b_klass##{self.object_id}"; end; def self.inspect; "b_klass"; end; }
     @c_klass = Class.new { def inspect; "c_klass##{self.object_id}"; end; def self.inspect; "c_klass"; end; }
+    @d_klass = Class.new { def inspect; "d_klass##{self.object_id}"; end; def self.inspect; "d_klass"; end; }
 
     @a = @a_klass.new
     @b = @b_klass.new
     @c = @c_klass.new
+    @d = @d_klass.new
   end
 
   def resource
@@ -36,6 +38,16 @@ class SusaninResourceTest < Minitest::Test
     assert subject.url_parameters([@a, :middle_prefix, @c]) == "result"
   end
 
+  def test_get
+    subject = ::Susanin::Resource.new()
+    raise "Not implemented yet"
+
+    # assert subject.get(@a, @resources2).flatten == [:global_prefix, :a_prefix, @a]
+    # assert subject.get([@a, @b], @resources2).flatten == [:global_prefix, :another_prefix, @a, @b]
+    # assert subject.get([:a_prefix, :another_prefix, @c], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :another_prefix, @c]
+    # assert subject.get([:a_prefix, @a], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :a_prefix, @a]
+  end
+
   def test_get_key
     subject = ->(*args) { resource.get_key(*args) }
     assert_equal subject['1'], '1'
@@ -48,21 +60,43 @@ class SusaninResourceTest < Minitest::Test
     assert_equal subject[[String, 1, :'1', :qwe]], [String, Fixnum, :'1', :qwe]
   end
 
+  def test_get_value
+    raise "Not implemented yet"
+  end
+
   def test_replace_with
-    subject = ::Susanin::Resource.new
     resources = [
       [:a_prefix,                            ->(r) { [:global_prefix, r] }],
       [:another_prefix,                      ->(r) { [:global_prefix, r] }],
       [@a_klass,                             ->(r) { [:a_prefix, r] }],
-      [[@a_klass],                           ->(r) { [:a_prefix, r] }],
+      [[@a_klass],                           ->(r) { [:arr_prefix, r] }],
       [[@a_klass, @b_klass],                 ->(r) { [:another_prefix, *r] }],
       [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }]
     ]
-
-    subject.replace_with([@a, @b, @c, @d], resources).tap do |arr|
-      assert_equal arr.second.map(&:first), [:a_prefix, :another_prefix,[@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]]
-      assert_equal arr.first, [:a_prefix, @a, @b, @c, @d]
+    should_behave = ->(resources, record, assert_keys, assert_record) do
+      resource.replace_with(record, resources).tap do |arr|
+        assert_equal arr.second.map(&:first), assert_keys
+        assert_equal arr.first, assert_record
+      end
     end
+
+    should_behave.call(resources,
+      [@a, @b, @c, @d],
+      [:a_prefix, :another_prefix, [@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]],
+      [:a_prefix, @a, @b, @c, @d]
+    )
+
+    should_behave.call(resources,
+      [:a_prefix],
+      [:another_prefix, @a_klass, [@a_klass], [@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]],
+      [:global_prefix, :a_prefix]
+    )
+
+    should_behave.call(resources,
+      [:a_prefix, @a],
+      [:another_prefix, @a_klass, [@a_klass], [@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]],
+      [:global_prefix, :a_prefix, @a]
+    )
   end
 
   def test_merged_options
@@ -140,16 +174,6 @@ class SusaninResourceTest < Minitest::Test
     assert_equal subject[[:new, :non_exist]].first,       nil
     assert_equal subject[[@b, @c]].first,                 nil
     assert_equal subject[@a].first,                       @a_klass
-  end
-
-  def test_get
-    subject = ::Susanin::Resource.new()
-    raise "Not implemented yet"
-
-    # assert subject.get(@a, @resources2).flatten == [:global_prefix, :a_prefix, @a]
-    # assert subject.get([@a, @b], @resources2).flatten == [:global_prefix, :another_prefix, @a, @b]
-    # assert subject.get([:a_prefix, :another_prefix, @c], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :another_prefix, @c]
-    # assert subject.get([:a_prefix, @a], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :a_prefix, @a]
   end
 
   def test_replace_subrecord

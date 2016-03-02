@@ -127,6 +127,12 @@ module Susanin
       end
     end
 
+    def get_value(record, resources)
+      key = get_key(record)
+      resource = resources.find { |i| i[0] == key }
+      resource ? resource[1] : record
+    end
+
     #
     # merged_options([], {}) #=> []
     # merged_options([a], {}) #=> [a]
@@ -173,9 +179,22 @@ module Susanin
       record = record.dup
       pattern = Array.wrap(pattern)
 
-      (pattern.length).upto(record.length) do |i|
-        record[(0+(i-pattern.length))..(i-1)] = resource[record[(0+(i-pattern.length))..(i-1)]] if pattern_match?(record[(0+(i-pattern.length))..(i-1)], pattern)
+      i = pattern.length
+
+      while i <= record.length do
+        set = (0+(i-pattern.length))..(i-1)
+        subset = record[set]
+
+        if pattern_match?(subset, pattern)
+          subset = subset[0] if subset.size == 1
+          value = get_value(subset, resource).call(subset)
+          record[set] = value
+          i += value.size
+        else
+          i += 1
+        end
       end
+
       record
     end
 
@@ -185,6 +204,10 @@ module Susanin
     #
     def pattern_match?(record, pattern)
       Array.wrap(get_key(record)) == Array.wrap(pattern)
+    end
+
+    def array_unwrap(a)
+      a.size == 1 ? a[0] : a
     end
 
   end
