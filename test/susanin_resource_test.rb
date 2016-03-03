@@ -28,8 +28,8 @@ class SusaninResourceTest < Minitest::Test
       [:another_prefix, ->(r) { [:global_prefix, r] }],
       [@a_klass, ->(r) { [:a_prefix, r] }],
       [[@a_klass], ->(r) { [:a_prefix, r] }],
-      [[@a_klass, @b_klass], ->(r) { [:another_prefix, *r] }],
-      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }]
+      [[@a_klass, @b_klass], ->(*r) { [:another_prefix, *r] }],
+      [[@a_klass, :middle_prefix, @c_klass], ->(*r) { "result" }]
     ])
 
     assert_equal subject.url_parameters([@a]), [:global_prefix, :a_prefix, @a]
@@ -42,10 +42,10 @@ class SusaninResourceTest < Minitest::Test
     resources = [
       [:a_prefix,                            ->(r) { [:global_prefix, r] }],
       [:another_prefix,                      ->(r) { [:global_prefix, r] }],
-      [[@a_klass, @b_klass],                 ->(r) { [:another_prefix, *r] }],
+      [[@a_klass, @b_klass],                 ->(*r) { [:another_prefix, *r] }],
       [@a_klass,                             ->(r) { [:a_prefix, r] }],
       [[@a_klass],                           ->(r) { [:arr_prefix, r] }],
-      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }]
+      [[@a_klass, :middle_prefix, @c_klass], ->(*r) { "result" }]
     ]
 
     assert_equal subject.get(@a, resources), [:global_prefix, :a_prefix, @a]
@@ -69,12 +69,12 @@ class SusaninResourceTest < Minitest::Test
 
   def test_replace_with
     resources = [
-      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }],
+      [[@a_klass, :middle_prefix, @c_klass], ->(*r) { "result" }],
       [:a_prefix,                            ->(r) { [:global_prefix, r] }],
       [:another_prefix,                      ->(r) { [:global_prefix, r] }],
       [@a_klass,                             ->(r) { [:a_prefix, r] }],
-      [[@a_klass],                           ->(r) { [:arr_prefix, r] }],
-      [[@a_klass, @b_klass],                 ->(r) { [:another_prefix, *r] }]
+      [[@a_klass],                           ->(*r) { [:arr_prefix, r] }],
+      [[@a_klass, @b_klass],                 ->(*r) { [:another_prefix, *r] }]
     ]
     should_behave = ->(resources, record, assert_keys, assert_record) do
       resource.replace_with(record, resources).tap do |arr|

@@ -181,8 +181,7 @@ module Susanin
         subset = record[set]
 
         if pattern_match?(subset, pattern)
-          subset = subset[0] if subset.size == 1
-          value = resource.call(subset)
+          value = resource.call(*subset)
           record[set] = value
           i += Array.wrap(value).size
         else
