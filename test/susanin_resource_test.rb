@@ -23,29 +23,36 @@ class SusaninResourceTest < Minitest::Test
   end
 
   def test_assertion_1
-    raise "Not implemented yet"
-    subject = ::Susanin::Resource.new({
-      :a_prefix => ->(r) { [:global_prefix, r] },
-      :another_prefix => ->(r) { [:global_prefix, r] },
-      @a_klass => ->(r) { [:a_prefix, r] },
-      [@a_klass] => ->(r) { [:a_prefix, r] },
-      [@a_klass, @b_klass] => ->(r) { [:another_prefix, *r] },
-      [@a_klass, :middle_prefix, @c_klass] => ->(r) { "result" }
-    })
+    subject = ::Susanin::Resource.new([
+      [:a_prefix, ->(r) { [:global_prefix, r] }],
+      [:another_prefix, ->(r) { [:global_prefix, r] }],
+      [@a_klass, ->(r) { [:a_prefix, r] }],
+      [[@a_klass], ->(r) { [:a_prefix, r] }],
+      [[@a_klass, @b_klass], ->(r) { [:another_prefix, *r] }],
+      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }]
+    ])
 
-    assert subject.url_parameters([@a]) == [:global_prefix, :a_prefix, @a]
-    assert subject.url_parameters([@a, @b]) == [:global_prefix, :another_prefix, @a, @b]
-    assert subject.url_parameters([@a, :middle_prefix, @c]) == "result"
+    assert_equal subject.url_parameters([@a]), [:global_prefix, :a_prefix, @a]
+    assert_equal subject.url_parameters([@a, @b]), [:global_prefix, :a_prefix, :global_prefix, :another_prefix, @a, @b]
+    assert_equal subject.url_parameters([@a, :middle_prefix, @c]), [:global_prefix, :a_prefix, "result"]
   end
 
   def test_get
     subject = ::Susanin::Resource.new()
-    raise "Not implemented yet"
+    resources = [
+      [:a_prefix,                            ->(r) { [:global_prefix, r] }],
+      [:another_prefix,                      ->(r) { [:global_prefix, r] }],
+      [[@a_klass, @b_klass],                 ->(r) { [:another_prefix, *r] }],
+      [@a_klass,                             ->(r) { [:a_prefix, r] }],
+      [[@a_klass],                           ->(r) { [:arr_prefix, r] }],
+      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }]
+    ]
 
-    # assert subject.get(@a, @resources2).flatten == [:global_prefix, :a_prefix, @a]
-    # assert subject.get([@a, @b], @resources2).flatten == [:global_prefix, :another_prefix, @a, @b]
-    # assert subject.get([:a_prefix, :another_prefix, @c], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :another_prefix, @c]
-    # assert subject.get([:a_prefix, @a], @resources2).flatten == [:global_prefix, :a_prefix, :global_prefix, :a_prefix, @a]
+    assert_equal subject.get(@a, resources), [:global_prefix, :a_prefix, @a]
+    assert_equal subject.get([@a, @b], resources), [:global_prefix, :another_prefix, @a, @b]
+    assert_equal subject.get([:a_prefix, :another_prefix, @c], resources), [:global_prefix, :a_prefix, :global_prefix, :another_prefix, @c]
+    assert subject.get([:a_prefix, @a], resources), [:global_prefix, :a_prefix, :global_prefix, :a_prefix, @a]
+    assert subject.get([:a_prefix, @a], []), [:a_prefix, @a]
   end
 
   def test_get_key
@@ -60,18 +67,14 @@ class SusaninResourceTest < Minitest::Test
     assert_equal subject[[String, 1, :'1', :qwe]], [String, Fixnum, :'1', :qwe]
   end
 
-  def test_get_value
-    raise "Not implemented yet"
-  end
-
   def test_replace_with
     resources = [
+      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }],
       [:a_prefix,                            ->(r) { [:global_prefix, r] }],
       [:another_prefix,                      ->(r) { [:global_prefix, r] }],
       [@a_klass,                             ->(r) { [:a_prefix, r] }],
       [[@a_klass],                           ->(r) { [:arr_prefix, r] }],
-      [[@a_klass, @b_klass],                 ->(r) { [:another_prefix, *r] }],
-      [[@a_klass, :middle_prefix, @c_klass], ->(r) { "result" }]
+      [[@a_klass, @b_klass],                 ->(r) { [:another_prefix, *r] }]
     ]
     should_behave = ->(resources, record, assert_keys, assert_record) do
       resource.replace_with(record, resources).tap do |arr|
@@ -82,20 +85,38 @@ class SusaninResourceTest < Minitest::Test
 
     should_behave.call(resources,
       [@a, @b, @c, @d],
-      [:a_prefix, :another_prefix, [@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]],
+      [[@a_klass, :middle_prefix, @c_klass], :a_prefix, :another_prefix, [@a_klass, @b_klass]],
       [:a_prefix, @a, @b, @c, @d]
     )
 
     should_behave.call(resources,
       [:a_prefix],
-      [:another_prefix, @a_klass, [@a_klass], [@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]],
+      [[@a_klass, :middle_prefix, @c_klass], :another_prefix, @a_klass, [@a_klass], [@a_klass, @b_klass]],
       [:global_prefix, :a_prefix]
     )
 
     should_behave.call(resources,
       [:a_prefix, @a],
-      [:another_prefix, @a_klass, [@a_klass], [@a_klass, @b_klass], [@a_klass, :middle_prefix, @c_klass]],
+      [[@a_klass, :middle_prefix, @c_klass], :another_prefix, @a_klass, [@a_klass], [@a_klass, @b_klass]],
       [:global_prefix, :a_prefix, @a]
+    )
+
+    should_behave.call(resources,
+      [:qwe],
+      [[@a_klass, :middle_prefix, @c_klass], :a_prefix, :another_prefix, @a_klass, [@a_klass], [@a_klass, @b_klass]],
+      [:qwe]
+    )
+
+    should_behave.call(resources,
+      [:qwe, @a],
+      [[@a_klass, :middle_prefix, @c_klass], :a_prefix, :another_prefix, [@a_klass, @b_klass]],
+      [:qwe, :a_prefix, @a]
+    )
+
+    should_behave.call(resources,
+      [:qwe, @a, :middle_prefix, @c],
+      [:a_prefix, :another_prefix, [@a_klass, @b_klass]],
+      [:qwe, "result"]
     )
   end
 
@@ -177,12 +198,13 @@ class SusaninResourceTest < Minitest::Test
   end
 
   def test_replace_subrecord
-    subject = ->(*args, r) { resource.replace_subrecord(*args, ->(*args){ r }) }
+    subject = ->(*args, r) { resource.replace_subrecord(*args, ->(*a){ r }) }
 
     assert_equal subject.call([:a, :b, :c, :a, :b, :b], [:a, :b], '_1_'), ['_1_', :c, '_1_', :b]
     assert_equal subject.call([:a, :b, :c, :a, :b, :b], [:a], '_1_'), ['_1_', :b, :c, '_1_', :b, :b]
     assert_equal subject.call([:a, :b, @a, :a, @b, :b], [@a_klass], '_1_'), [:a, :b, '_1_', :a, @b, :b]
     assert_equal subject.call([:a, :b, @a, :a, @b, :b], [@b_klass, :b], '_1_'), [:a, :b, @a, :a, '_1_']
+    assert_equal subject.call([:a, :b, @a, :a, @b, :b], [], '_1_'), [:a, :b, @a, :a, @b, :b]
   end
 
   def test_pattern_match

@@ -28,8 +28,7 @@ module Susanin
     # [:qwe, :wer, :d]
     #
     def get(record, resources=@resources)
-      result = [record, resources]
-      new_record, new_resources = replace_with(record, resources)
+      new_record, new_resources = replace_with(Array.wrap(record), resources)
       if record == new_record
         new_record
       else
@@ -60,7 +59,7 @@ module Susanin
       resources = resources.dup
       pattern, converter = find_first_pattern(record, resources)
 
-      [replace_subrecord(record, pattern, resources), resources_except(resources, pattern)]
+      [replace_subrecord(record, pattern, converter), resources_except(resources, pattern)]
     end
 
     #
@@ -127,12 +126,6 @@ module Susanin
       end
     end
 
-    def get_value(record, resources)
-      key = get_key(record)
-      resource = resources.find { |i| i[0] == key }
-      resource ? resource[1] : record
-    end
-
     #
     # merged_options([], {}) #=> []
     # merged_options([a], {}) #=> [a]
@@ -181,15 +174,17 @@ module Susanin
 
       i = pattern.length
 
+      return record if i == 0
+
       while i <= record.length do
         set = (0+(i-pattern.length))..(i-1)
         subset = record[set]
 
         if pattern_match?(subset, pattern)
           subset = subset[0] if subset.size == 1
-          value = get_value(subset, resource).call(subset)
+          value = resource.call(subset)
           record[set] = value
-          i += value.size
+          i += Array.wrap(value).size
         else
           i += 1
         end
