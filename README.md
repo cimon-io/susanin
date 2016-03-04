@@ -25,11 +25,16 @@ class ApplicationController < ActionController::Base
   include ::Susanin
 
   susanin do
-    {
-      Admin => ->(resource) { [resource.company, resource] },
-      Photo => ->(resource) { [resource.admin.company, resource.admin, resource] },
-      Gallery => ->(resource) { [resource.company, resource] }
-    }
+    [
+      [:owner,              ->(r) { [:admin] }],
+      [[:frontend, Link],   ->(r) { [:frontend, r] }],
+      [User,                ->(r) { [:owner, r] }],
+      [Project,             ->(r) { [:owner, r] }],
+      [Link,                ->(r) { [:owner, r] }],
+      [Admin,                ->(r) { [r.company, r] }],
+      [Photo,                ->(r) { [r.admin.company, r.admin, r] }],
+      [Gallery,              ->(r) { [r.company, r] }]
+    ]
   end
 
 end
@@ -46,7 +51,6 @@ You are able to write this:
 ```ruby
 link_to user.email, [:edit, user], class: 'button'
 ```
-
 
 ## Contributing
 

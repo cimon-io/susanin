@@ -1,0 +1,39 @@
+services:
+  ruby21:
+    from: ruby:2.1.8
+    cache:
+      - /bundle
+    build:
+      - gem install bundler
+  ruby22:
+    from: ruby:2.2.4
+    cache:
+      - /bundle
+    build:
+      - gem install bundler
+  ruby23:
+    from: ruby:2.3.0
+    cache:
+      - /bundle
+    build:
+      - gem install bundler
+
+default: &default
+  prepare:
+    - bundle install --path /bundle
+  folder: /app
+  cmd: bin/rake
+  env:
+    - COVERAGE=true
+
+test21:
+  <<: *default
+  service: ruby21
+
+test22:
+  <<: *default
+  service: ruby22
+
+test23:
+  <<: *default
+  service: ruby23
