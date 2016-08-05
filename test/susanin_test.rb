@@ -8,7 +8,6 @@ class SusaninTest < Minitest::Test
   def test_that_has_class_method_susanin
     a1 = Class.new do
       def self.helper_method(*args); end
-      def self.hide_action(*args); end
       def polymorphic_url(*args); end
       def polymorphic_path(*args); end
     end
