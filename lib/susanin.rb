@@ -10,7 +10,6 @@ module Susanin
   autoload :Pattern, 'susanin/pattern'
 
   included do
-    hide_action :polymorphic_url, :polymorphic_path
     helper_method :polymorphic_url, :polymorphic_path
   end
 
