@@ -31,9 +31,9 @@ class ApplicationController < ActionController::Base
       [User,                ->(r) { [:owner, r] }],
       [Project,             ->(r) { [:owner, r] }],
       [Link,                ->(r) { [:owner, r] }],
-      [Admin,                ->(r) { [r.company, r] }],
-      [Photo,                ->(r) { [r.admin.company, r.admin, r] }],
-      [Gallery,              ->(r) { [r.company, r] }]
+      [Admin,               ->(r) { [r.company, r] }],
+      [Photo,               ->(r) { [r.admin.company, r.admin, r] }],
+      [Gallery,             ->(r) { [r.company, r] }]
     ]
   end
 
