@@ -58,13 +58,13 @@ class SusaninResourceTest < Minitest::Test
   def test_get_key
     subject = ->(*args) { resource.get_key(*args) }
     assert_equal subject['1'], '1'
-    assert_equal subject[1], Fixnum
+    assert_equal subject[1], Integer
     assert_equal subject[:'1'], :'1'
     assert_equal subject[nil], NilClass
     assert_equal subject[String], String
     assert_equal subject[true], TrueClass
-    assert_equal subject[[1, :'1']], [Fixnum, :'1']
-    assert_equal subject[[String, 1, :'1', :qwe]], [String, Fixnum, :'1', :qwe]
+    assert_equal subject[[1, :'1']], [Integer, :'1']
+    assert_equal subject[[String, 1, :'1', :qwe]], [String, Integer, :'1', :qwe]
   end
 
   def test_replace_with
