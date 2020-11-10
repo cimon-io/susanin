@@ -197,7 +197,9 @@ module Susanin
     # pattern_match?([a, b], [a, b]) => false
     #
     def pattern_match?(record, pattern)
-      Array.wrap(get_key(record)) == Array.wrap(pattern)
+      Array.wrap(get_key(record)).zip(Array.wrap(pattern)).all? do |a, b|
+        b.is_a?(Class) && a.is_a?(Class) ? a <= b : b == a
+      end
     end
 
     def array_unwrap(a)
