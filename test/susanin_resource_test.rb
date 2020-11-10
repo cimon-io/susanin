@@ -7,11 +7,13 @@ class SusaninResourceTest < Minitest::Test
     @b_klass = Class.new { def inspect; "b_klass##{self.object_id}"; end; def self.inspect; "b_klass"; end; }
     @c_klass = Class.new { def inspect; "c_klass##{self.object_id}"; end; def self.inspect; "c_klass"; end; }
     @d_klass = Class.new { def inspect; "d_klass##{self.object_id}"; end; def self.inspect; "d_klass"; end; }
+    @e_klass = Class.new(@a_klass) { def inspect; "a_klass##{self.object_id}"; end; def self.inspect; "a_klass"; end; }
 
     @a = @a_klass.new
     @b = @b_klass.new
     @c = @c_klass.new
     @d = @d_klass.new
+    @e = @e_klass.new
   end
 
   def resource
@@ -213,9 +215,11 @@ class SusaninResourceTest < Minitest::Test
     assert subject.pattern_match?([@a, @b], [@a_klass, @b_klass])
     assert subject.pattern_match?([@a, :c], [@a_klass, :c])
     assert subject.pattern_match?(@a, @a_klass)
+    assert subject.pattern_match?(@e_klass, @a_klass)
     assert subject.pattern_match?(:c, :c)
     assert subject.pattern_match?([:c], :c)
     assert subject.pattern_match?(:c, [:c])
+    dissuade subject.pattern_match?([@d, @e], [@d, @a])
     dissuade subject.pattern_match?([@a, @b_klass], [@a, @b_klass])
     dissuade subject.pattern_match?(@a, @a)
     dissuade subject.pattern_match?([@a, :c], [@a, :c])
