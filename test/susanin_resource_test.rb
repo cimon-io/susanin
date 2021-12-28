@@ -27,6 +27,8 @@ class SusaninResourceTest < Minitest::Test
   def test_assertion_1
     subject = ::Susanin::Resource.new([
       [:a_prefix, ->(r) { [:global_prefix, r] }],
+      [:a_hash1, ->(r) { [option1: 1, option2: 2] }],
+      [:a_hash2, ->(r) { [r, option2: 3, option3: 4] }],
       [:another_prefix, ->(r) { [:global_prefix, r] }],
       [@a_klass, ->(r) { [:a_prefix, r] }],
       [[@a_klass], ->(r) { [:a_prefix, r] }],
@@ -37,6 +39,8 @@ class SusaninResourceTest < Minitest::Test
     assert_equal subject.url_parameters([@a]), [:global_prefix, :a_prefix, @a]
     assert_equal subject.url_parameters([@a, @b]), [:global_prefix, :a_prefix, :global_prefix, :another_prefix, @a, @b]
     assert_equal subject.url_parameters([@a, :middle_prefix, @c]), [:global_prefix, :a_prefix, "result"]
+    assert_equal subject.url_parameters([@a, :a_hash1, :middle_prefix, @c]), [:global_prefix, :a_prefix, "result", { option1: 1, option2: 2 }]
+    assert_equal subject.url_parameters([:a_hash2, @a, :a_hash1, :middle_prefix]), [:a_hash2, :global_prefix, :a_prefix, @a, :middle_prefix, { option1: 1, option2: 2, option3: 4 }]
   end
 
   def test_get

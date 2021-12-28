@@ -11,7 +11,8 @@ module Susanin
 
     def url_parameters(record_or_hash_or_array, options={})
       params = self.get(Array.wrap(record_or_hash_or_array)).flatten
-      merged_options(params, options={})
+      opts, params = params.partition { |i| i.is_a?(Hash) }
+      merged_options(params, opts.inject(options) { |acc, i| acc.merge(i) })
     end
 
     #
@@ -189,7 +190,8 @@ module Susanin
         end
       end
 
-      record
+      opts, r = record.partition { |i| i.is_a?(Hash) }
+      opts.any? ? [*r, opts.inject({}, :merge)] : r
     end
 
     #
